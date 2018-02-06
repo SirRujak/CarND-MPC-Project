@@ -68,8 +68,10 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
 int main() {
   uWS::Hub h;
 
+  std::cout << "test4" << endl;
   // MPC is initialized here!
   MPC mpc;
+  std::cout << "test3" << endl;
 
   h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -98,21 +100,85 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+          double Lf = 2.67;
+          double steer_value = j[1]["steering_angle"];
+          double throttle_value = j[1]["throttle"];
+          std::cout << "test2" << std::endl;
+
+          /*
+          // Implement latency.
+          double latency = 0.1;
+          px += v * cos(psi) * latency;
+          py += v * sin(psi) * latency;
+          psi += v * (steer_value/Lf) * latency;
+          v += throttle_value * latency;
+          */
+
+          // Convert mi/h to m/s
+          //v *= 0.44704;
+
+          for (size_t i = 0; i < ptsx.size(); i++) {
+            double shift_x = ptsx[i] - px;
+            double shift_y = ptsy[i] - py;
+
+            ptsx[i] = (shift_x * cos(0-psi) - shift_y * sin(0 - psi));
+            ptsy[i] = (shift_x * sin(0-psi) + shift_y * cos(0 - psi));
+          }
+          std::cout << "test2.1" << endl;
+
+          double* ptrx = &ptsx[0];
+          Eigen::Map<Eigen::VectorXd> ptsx_eigen(ptrx, 6);
+
+          double* ptry = &ptsy[0];
+          Eigen::Map<Eigen::VectorXd> ptsy_eigen(ptry, 6);
+
+          auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 3);
+          std::cout << "test2.2" << endl;
+
+          // Calculate cte and epsi.
+          double cte = polyeval(coeffs, 0);
+          // epsi = psi - atan(coeffs[1] + 2 * px * coeffs[2]
+          //            + 3 * coeffs[3] * pow(px, 2)
+          // psi = 0
+          // px = 0
+          // epsi = psi(0) - atan(coeffs[1]) + 2 * px(0) * coeffs[2]
+          //               +  3 * coeffs[3] * pow(px(0), 2)
+          // epsi == - atan(coeffs[1])
+          std::cout << "test2.3" << endl;
+          double epsi = -atan(coeffs[1]);
+
+          // State vector has six values.
+          Eigen::VectorXd state(6);
+          std::cout << "test2.4" << endl;
+          // Push zero for x, y, and psi because we shifted perspective
+          // to already account for them.
+          state << 0, 0, 0, v, cte, epsi;
+          std::cout << "test2.5" << std::endl;
+
+          auto vars = mpc.Solve(state, coeffs);
+          std::cout << "test" << std::endl;
+
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = throttle_value;
+          msgJson["steering_angle"] = - vars[0] / (deg2rad(25) * Lf);
+          msgJson["throttle"] = vars[1];
 
-          //Display the MPC predicted trajectory 
+          //Display the MPC predicted trajectory
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
+          for (size_t i = 2; i < vars.size(); i++)
+          {
+            if (i%2 == 0) {
+              mpc_x_vals.push_back(vars[i]);
+            } else {
+              mpc_y_vals.push_back(vars[i]);
+            }
+          }
 
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
@@ -123,6 +189,12 @@ int main() {
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
+          double point_dist = 2.5;
+          int num_points = 20;
+          for (int i = 1; i < num_points; i++) {
+            next_x_vals.push_back(point_dist * i);
+            next_y_vals.push_back(polyeval(coeffs, point_dist * i));
+          }
 
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
