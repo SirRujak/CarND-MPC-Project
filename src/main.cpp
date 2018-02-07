@@ -105,17 +105,13 @@ int main() {
           double throttle_value = j[1]["throttle"];
           std::cout << "test2" << std::endl;
 
-          /*
-          // Implement latency.
-          double latency = 0.1;
-          px += v * cos(psi) * latency;
-          py += v * sin(psi) * latency;
-          psi += v * (steer_value/Lf) * latency;
-          v += throttle_value * latency;
-          */
-
           // Convert mi/h to m/s
           //v *= 0.44704;
+
+
+
+
+
 
           for (size_t i = 0; i < ptsx.size(); i++) {
             double shift_x = ptsx[i] - px;
@@ -125,6 +121,12 @@ int main() {
             ptsy[i] = (shift_x * sin(0-psi) + shift_y * cos(0 - psi));
           }
           std::cout << "test2.1" << endl;
+          // Implement latency.
+          double latency = 0.1;
+          px += v * cos(psi) * latency;
+          py += v * sin(psi) * latency;
+          psi += v * (steer_value/Lf) * latency;
+          v += throttle_value * latency;
 
           double* ptrx = &ptsx[0];
           Eigen::Map<Eigen::VectorXd> ptsx_eigen(ptrx, 6);
