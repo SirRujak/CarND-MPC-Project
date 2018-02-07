@@ -68,10 +68,8 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
 int main() {
   uWS::Hub h;
 
-  std::cout << "test4" << endl;
   // MPC is initialized here!
   MPC mpc;
-  std::cout << "test3" << endl;
 
   h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -103,7 +101,6 @@ int main() {
           double Lf = 2.67;
           double steer_value = j[1]["steering_angle"];
           double throttle_value = j[1]["throttle"];
-          std::cout << "test2" << std::endl;
 
           // Convert mi/h to m/s
           //v *= 0.44704;
@@ -120,7 +117,6 @@ int main() {
             ptsx[i] = (shift_x * cos(0-psi) - shift_y * sin(0 - psi));
             ptsy[i] = (shift_x * sin(0-psi) + shift_y * cos(0 - psi));
           }
-          std::cout << "test2.1" << endl;
           // Implement latency.
           double latency = 0.1;
           px += v * cos(psi) * latency;
@@ -135,7 +131,6 @@ int main() {
           Eigen::Map<Eigen::VectorXd> ptsy_eigen(ptry, 6);
 
           auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 3);
-          std::cout << "test2.2" << endl;
 
           // Calculate cte and epsi.
           double cte = polyeval(coeffs, 0);
@@ -146,19 +141,15 @@ int main() {
           // epsi = psi(0) - atan(coeffs[1]) + 2 * px(0) * coeffs[2]
           //               +  3 * coeffs[3] * pow(px(0), 2)
           // epsi == - atan(coeffs[1])
-          std::cout << "test2.3" << endl;
           double epsi = -atan(coeffs[1]);
 
           // State vector has six values.
           Eigen::VectorXd state(6);
-          std::cout << "test2.4" << endl;
           // Push zero for x, y, and psi because we shifted perspective
           // to already account for them.
           state << 0, 0, 0, v, cte, epsi;
-          std::cout << "test2.5" << std::endl;
 
           auto vars = mpc.Solve(state, coeffs);
-          std::cout << "test" << std::endl;
 
 
           json msgJson;

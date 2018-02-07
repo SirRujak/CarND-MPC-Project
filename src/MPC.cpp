@@ -196,8 +196,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     constraints_upperbound[i] = 0;
   }
 
-  std::cout << "test5.1" << std::endl;
-
   // Define some variables for readability.
   double x = state[0];
   double y = state[1];
@@ -230,7 +228,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
-  std::cout << "test5.2" << std::endl;
 
   //
   // NOTE: You don't have to worry about these options
@@ -249,7 +246,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
   // Change this as you see fit.
   options += "Numeric max_cpu_time          100\n";
-  std::cout << "test5.4" << endl;
 
   // place to return solution
   CppAD::ipopt::solve_result<Dvector> solution;
@@ -274,7 +270,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   vector<double> result;
   result.push_back(solution.x[delta_start]);
   result.push_back(solution.x[a_start]);
-  std::cout << "test5.3: " << solution.x.size() << std::endl;
   for (size_t t = 0; t < N - 1; t++) {
     //std::cout << t << endl;
     result.push_back(solution.x[x_start + t + 1]);
@@ -282,6 +277,5 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     result.push_back(solution.x[y_start + t + 1]);
       //std::cout << t << endl;
   }
-  std::cout << "test5.5" << std::endl;
   return result;
 }
