@@ -106,6 +106,12 @@ int main() {
           //v *= 0.44704;
 
 
+          // Implement latency.
+          double latency = 0.1;
+          px += v * cos(psi) * latency;
+          py += v * sin(psi) * latency;
+          psi -= v * (steer_value/Lf) * latency;
+          v += throttle_value * latency;
 
 
 
@@ -117,12 +123,6 @@ int main() {
             ptsx[i] = (shift_x * cos(0-psi) - shift_y * sin(0 - psi));
             ptsy[i] = (shift_x * sin(0-psi) + shift_y * cos(0 - psi));
           }
-          // Implement latency.
-          double latency = 0.1;
-          px += v * cos(psi) * latency;
-          py += v * sin(psi) * latency;
-          psi += v * (steer_value/Lf) * latency;
-          v += throttle_value * latency;
 
           double* ptrx = &ptsx[0];
           Eigen::Map<Eigen::VectorXd> ptsx_eigen(ptrx, 6);
