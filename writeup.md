@@ -34,6 +34,10 @@ complex systems. Following is a description of each portion of the model:
 
 #### State
 
+The state, prediction, and actuator equations, as found in the lectures, are given below:
+
+![MPC Equations](MPC_equations.png "MPC Equations")
+
 The state of this MPC consists of the position of the car(x and y), the angle from a reference path(psi), the current
 velocity of the vehicle(v), the current error from the predefined path(cte), and the current error from the paths angle(epsi).
 
@@ -72,6 +76,18 @@ solution found. Other values tried included
 points
 4. N = 10, dt = 0.15  which was found to have a good average of smooth and fast driving. 
 
+A smaller dt can allow a smaller time resolution which can cause both positive and negitave results. A smaller time value
+will allow a system that needs more points of reference, such as a curve, to find a closer fitting solution. On the other
+hand, if the time resolution is too low the system will consider near term solutions too heavily and not allow the system
+to err within reasonable margins. The two options then are very fine handling on curves versus allowing the system to
+attain very high speeds on on straightaways.
+
+As the N value increases the system must use more computational time to find a solution. This works in an inverse way to dt.
+Large N values will allow the system to more closely match curves but over prioritize close steps.
+
+If the time horizon(N*dt) is not large enough the system will not be able to make accurate predictions of corners while if
+it is too large the system will be unable to make accurate predictions on straight segments of road.
+
 ### Polynomial Fitting and MPC Preprocessing
 
 The vehicle state and waypoints are preprocessed to be in the reference frame of the car. This allows the state to always
@@ -87,4 +103,7 @@ the latency occurs.
 
 ### The vehicle must successfully drive a lap around the track.
 
-The vehicle can successfully drive around the track for at least ten laps as per testing.
+The vehicle can successfully drive around the track for at least ten laps as per testing. Whenever the time horizon
+surpases the range of the provided lines the prediction line is only accurate up to the distance of the time horizon.
+As such, when the vehicle is going quickly the predictive line becomes uncertain towards the end but does not effect
+the predictive qualities of the MPC.
