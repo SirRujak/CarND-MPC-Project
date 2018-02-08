@@ -1,4 +1,4 @@
-# PID Control of a Simulated Vehicle
+# MPC Control of a Simulated Vehicle
 
 ## Compilation
 
